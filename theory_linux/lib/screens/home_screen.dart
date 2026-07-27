@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -44,16 +45,45 @@ class _HomeScreenState extends State<HomeScreen> {
           FilledButton(
             onPressed: () async {
               Navigator.pop(ctx);
-              final uri = Uri.parse(update.url);
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-              }
+              // On Linux we can't just download a file — build from source.
+              // Open a terminal that pulls the latest code, rebuilds, and
+              // relaunches the app.
+              await _runLinuxUpdater();
             },
             child: const Text('הורד עדכון'),
           ),
         ],
       ),
     );
+  }
+
+  /// Runs the update script in a terminal window (git pull + rebuild + relaunch).
+  Future<void> _runLinuxUpdater() async {
+    const script =
+        'https://raw.githubusercontent.com/amituti31-dev/Theory-Studies-/main/theory_linux/update_linux.sh';
+    // The shell command run inside the terminal.
+    final inner =
+        'curl -fsSL "$script" | bash || { echo; echo "שגיאה בעדכון — בדוק חיבור לאינטרנט"; }; '
+        'echo; echo "לחץ Enter לסגירה"; read';
+    // Terminals differ in how they take a command; try the common ones.
+    final attempts = <List<String>>[
+      ['gnome-terminal', '--', 'bash', '-c', inner],
+      ['x-terminal-emulator', '-e', 'bash', '-c', inner],
+      ['konsole', '-e', 'bash', '-c', inner],
+      ['xterm', '-e', 'bash', '-c', inner],
+    ];
+    for (final a in attempts) {
+      try {
+        await Process.start(a.first, a.sublist(1),
+            mode: ProcessStartMode.detached);
+        return;
+      } catch (_) {}
+    }
+    // No terminal found — fall back to opening the releases page.
+    final uri = Uri.parse(UpdateService.releasesPage);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
   Future<void> _loadStats() async {
