@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_provider.dart';
 import '../services/question_service.dart';
+import '../services/update_service.dart';
 import '../theme/app_theme.dart';
 
 class LicenseScreen extends StatelessWidget {
@@ -77,6 +78,17 @@ class LicenseScreen extends StatelessWidget {
                 size: 20,
                 color: isDark ? Colors.indigo.shade200 : AppColors.textSecondary),
           ],
+        ),
+      ),
+      Positioned(
+        bottom: 12,
+        left: 0,
+        right: 0,
+        child: Center(
+          child: Text(
+            'v${UpdateService.currentVersion}',
+            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+          ),
         ),
       ),
       ]),
