@@ -1,0 +1,56 @@
+# ── Flutter / Dart build artifacts ───────────────────────────
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/generated_plugin_registrant.*
+**/pubspec_overrides.yaml
+
+# ── Android ──────────────────────────────────────────────────
+**/android/.gradle/
+**/android/captures/
+**/android/local.properties
+**/android/key.properties
+**/android/app/upload-keystore.jks
+**/*.keystore
+**/*.jks
+
+# ── Linux native ephemeral ───────────────────────────────────
+**/linux/flutter/ephemeral/
+
+# ── Windows native ephemeral ─────────────────────────────────
+**/windows/flutter/ephemeral/
+
+# ── IDE / editor ─────────────────────────────────────────────
+.idea/
+.vscode/
+*.iml
+
+# ── OS junk ──────────────────────────────────────────────────
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# ── Built binaries — distributed via GitHub Releases, NOT git ─
+Theory Studies/
+*.apk
+*.aab
+*.exe
+*.msix
+*.AppImage
+*.dmg
+dist/
+
+# ── Claude Code local config & scratch scripts ───────────────
+.claude/
+ctx_check.py
+ctx_out.txt
+*_out.txt
+
+# ── SECRETS — never commit ───────────────────────────────────
+*.env
+.env.*
+secrets.*
+groq_key*
+**/lib/**/secrets.dart
