@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/app_provider.dart';
 import '../services/progress_service.dart';
 import '../services/question_service.dart';
+import '../services/update_service.dart';
 import '../theme/app_theme.dart';
 import 'quiz_screen.dart';
 
@@ -20,6 +22,38 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadStats();
+    _checkForUpdate();
+  }
+
+  Future<void> _checkForUpdate() async {
+    final update = await UpdateService.checkForUpdate();
+    if (update == null || !mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('עדכון זמין 🎉', textAlign: TextAlign.center),
+        content: Text(
+          'יצאה גרסה חדשה (${update.version}). רוצה להוריד אותה?',
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('אחר כך'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final uri = Uri.parse(update.url);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+            },
+            child: const Text('הורד עדכון'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _loadStats() async {
