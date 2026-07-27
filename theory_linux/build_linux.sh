@@ -70,6 +70,12 @@ fi
 export ARCH=x86_64
 export APPIMAGE_EXTRACT_AND_RUN=1
 OUT="$(pwd)/LimudeiTeoria-x86_64.AppImage"
+# Close any running copy and remove the old file so packaging can write a
+# fresh one (otherwise appimagetool fails with "Text file busy").
+pkill -f "LimudeiTeoria-x86_64" 2>/dev/null || true
+pkill -x theory_desktop 2>/dev/null || true
+sleep 1
+rm -f "$OUT"
 "$TOOL" "$APPDIR" "$OUT"
 chmod +x "$OUT"
 
