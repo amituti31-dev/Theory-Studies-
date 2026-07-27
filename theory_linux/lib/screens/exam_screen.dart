@@ -41,7 +41,7 @@ class _ExamScreenState extends State<ExamScreen> {
     VoiceService.getVoiceEnabled().then((v) {
       if (!mounted || !v) return;
       setState(() => _voiceEnabled = true);
-      _readCurrent();
+      // Reading is manual only — tap "הקרא" to hear the question.
     });
     _deadline = DateTime.now().add(examDuration);
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -69,7 +69,6 @@ class _ExamScreenState extends State<ExamScreen> {
   void _go(int newIndex) {
     if (newIndex < 0 || newIndex >= _questions.length || newIndex == _index) return;
     setState(() => _index = newIndex);
-    if (_voiceEnabled) _readCurrent();
   }
 
   void _readCurrent() {
@@ -170,11 +169,7 @@ class _ExamScreenState extends State<ExamScreen> {
               onPressed: () {
                 setState(() => _voiceEnabled = !_voiceEnabled);
                 VoiceService.setVoiceEnabled(_voiceEnabled);
-                if (_voiceEnabled) {
-                  _readCurrent();
-                } else {
-                  VoiceService.stop();
-                }
+                if (!_voiceEnabled) VoiceService.stop();
               },
             ),
             Center(

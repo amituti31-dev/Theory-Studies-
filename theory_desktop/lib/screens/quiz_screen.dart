@@ -56,7 +56,7 @@ class _QuizScreenState extends State<QuizScreen> {
       _questions = qs;
       _voiceEnabled = voiceOn;
     });
-    if (_voiceEnabled && qs.isNotEmpty) _readCurrent();
+    // Reading is manual only — the question is read when the user taps "הקרא".
   }
 
   @override
@@ -92,7 +92,6 @@ class _QuizScreenState extends State<QuizScreen> {
       _selected = null;
       _reveal = false;
     });
-    if (_voiceEnabled) _readCurrent();
   }
 
   void _readCurrent() {
@@ -176,11 +175,7 @@ class _QuizScreenState extends State<QuizScreen> {
               onPressed: () {
                 setState(() => _voiceEnabled = !_voiceEnabled);
                 VoiceService.setVoiceEnabled(_voiceEnabled);
-                if (_voiceEnabled) {
-                  _readCurrent();
-                } else {
-                  VoiceService.stop();
-                }
+                if (!_voiceEnabled) VoiceService.stop();
               },
             ),
           ],
