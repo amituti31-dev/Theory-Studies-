@@ -7,6 +7,7 @@ import '../services/progress_service.dart';
 import '../services/question_service.dart';
 import '../services/voice_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/celebration.dart';
 import '../widgets/question_view.dart';
 import '../widgets/voice_controls.dart';
 
@@ -74,10 +75,12 @@ class _QuizScreenState extends State<QuizScreen> {
       if (i == _cur.correct) _correctCount++;
     });
     ProgressService.recordAnswer(_cur.id, i == _cur.correct);
-    if (_voiceEnabled) {
-      VoiceService.speak(i == _cur.correct
-          ? 'נכון!'
-          : 'טעות. התשובה הנכונה היא ${_cur.correct + 1}');
+    if (i == _cur.correct) {
+      final phrase = randomCelebration();
+      showCelebration(context, phrase);
+      if (_voiceEnabled) VoiceService.speak(phrase);
+    } else if (_voiceEnabled) {
+      VoiceService.speak('טעות. התשובה הנכונה היא ${_cur.correct + 1}');
     }
   }
 
