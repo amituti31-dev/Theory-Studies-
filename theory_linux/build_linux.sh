@@ -31,7 +31,10 @@ flutter config --enable-linux-desktop
 
 echo "==> [4/5] מוריד תלויות ובונה (עשוי לקחת כמה דקות)..."
 flutter pub get
-flutter build linux --release
+# Optional: export GROQ_API_KEY before running to enable voice answering.
+KEY_ARG=""
+[ -n "$GROQ_API_KEY" ] && KEY_ARG="--dart-define=GROQ_API_KEY=$GROQ_API_KEY"
+flutter build linux --release $KEY_ARG
 
 echo "==> [5/5] אורז לקובץ AppImage יחיד (לוחצים פעמיים -> רץ)..."
 APP_DIR="$(pwd)/build/linux/x64/release/bundle"
