@@ -8,6 +8,8 @@ echo "=================================================="
 if [ -d "$REPO/.git" ]; then
   echo "==> מושך את הקוד החדש (git pull)..."
   cd "$REPO"
+  git config core.fileMode false          # ignore chmod +x differences
+  git checkout -- . 2>/dev/null || true    # drop any local changes
   git pull
 else
   echo "==> מוריד לראשונה (git clone)..."
