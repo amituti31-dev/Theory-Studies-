@@ -60,7 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
   /// terminal; if no terminal is available, runs it in the background instead.
   Future<void> _runLinuxUpdater() async {
     const scriptUrl =
-        'https://raw.githubusercontent.com/amituti31-dev/Theory-Studies-/main/theory_linux/update_linux.sh';
+        'https://raw.githubusercontent.com/amituti31-dev/Theory-Studies/main/theory_linux/update_linux.sh';
     final home = Platform.environment['HOME'] ?? '.';
     final boot = '$home/.theory_update.sh';
     // Write a tiny bootstrap that fetches and runs the real updater.

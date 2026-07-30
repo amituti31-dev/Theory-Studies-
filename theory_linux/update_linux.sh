@@ -8,12 +8,13 @@ echo "=================================================="
 if [ -d "$REPO/.git" ]; then
   echo "==> מושך את הקוד החדש (git pull)..."
   cd "$REPO"
+  git remote set-url origin https://github.com/amituti31-dev/Theory-Studies.git 2>/dev/null || true
   git config core.fileMode false          # ignore chmod +x differences
   git checkout -- . 2>/dev/null || true    # drop any local changes
   git pull
 else
   echo "==> מוריד לראשונה (git clone)..."
-  git clone https://github.com/amituti31-dev/Theory-Studies-.git "$REPO"
+  git clone https://github.com/amituti31-dev/Theory-Studies.git "$REPO"
   cd "$REPO"
 fi
 cd theory_linux

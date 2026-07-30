@@ -7,7 +7,7 @@ class UpdateService {
   /// Bump this on every release; must match the release tag (e.g. tag v1.1.0).
   static const currentVersion = '1.0.4';
 
-  static const _repo = 'amituti31-dev/Theory-Studies-';
+  static const _repo = 'amituti31-dev/Theory-Studies';
   static const _latestApi =
       'https://api.github.com/repos/$_repo/releases/latest';
 
