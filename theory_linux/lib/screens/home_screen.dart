@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../providers/app_provider.dart';
 import '../services/progress_service.dart';
 import '../services/question_service.dart';
@@ -57,33 +56,66 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Runs the update script in a terminal window (git pull + rebuild + relaunch).
+  /// Downloads + rebuilds + relaunches the app. Tries to show progress in a
+  /// terminal; if no terminal is available, runs it in the background instead.
   Future<void> _runLinuxUpdater() async {
-    const script =
+    const scriptUrl =
         'https://raw.githubusercontent.com/amituti31-dev/Theory-Studies-/main/theory_linux/update_linux.sh';
-    // The shell command run inside the terminal.
-    final inner =
-        'curl -fsSL "$script" | bash || { echo; echo "שגיאה בעדכון — בדוק חיבור לאינטרנט"; }; '
-        'echo; echo "לחץ Enter לסגירה"; read';
-    // Terminals differ in how they take a command; try the common ones.
-    final attempts = <List<String>>[
-      ['gnome-terminal', '--', 'bash', '-c', inner],
-      ['x-terminal-emulator', '-e', 'bash', '-c', inner],
-      ['konsole', '-e', 'bash', '-c', inner],
-      ['xterm', '-e', 'bash', '-c', inner],
+    final home = Platform.environment['HOME'] ?? '.';
+    final boot = '$home/.theory_update.sh';
+    // Write a tiny bootstrap that fetches and runs the real updater.
+    try {
+      await File(boot).writeAsString('#!/usr/bin/env bash\n'
+          'curl -fsSL "$scriptUrl" -o "\$HOME/.ts_update_real.sh" && '
+          'bash "\$HOME/.ts_update_real.sh"\n');
+    } catch (_) {}
+
+    final inTerm = 'bash "$boot"; echo; echo "לחץ Enter לסגירה"; read';
+    // Different desktops ship different terminals / argument styles.
+    final terminals = <List<String>>[
+      ['gnome-terminal', '--', 'bash', '-c', inTerm],
+      ['konsole', '-e', 'bash', '-c', inTerm],
+      ['xfce4-terminal', '-x', 'bash', '-c', inTerm],
+      ['mate-terminal', '-x', 'bash', '-c', inTerm],
+      ['tilix', '-e', 'bash', '-c', inTerm],
+      ['xterm', '-e', 'bash', '-c', inTerm],
+      ['x-terminal-emulator', '-e', 'bash', '-c', inTerm],
     ];
-    for (final a in attempts) {
+    for (final t in terminals) {
       try {
-        await Process.start(a.first, a.sublist(1),
+        await Process.start(t.first, t.sublist(1),
             mode: ProcessStartMode.detached);
-        return;
+        return; // terminal opened — done
       } catch (_) {}
     }
-    // No terminal found — fall back to opening the releases page.
-    final uri = Uri.parse(UpdateService.releasesPage);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    // No terminal — run in the background and tell the user.
+    try {
+      await Process.start('setsid', ['bash', boot],
+          mode: ProcessStartMode.detached);
+    } catch (_) {
+      try {
+        await Process.start('bash', [boot],
+            mode: ProcessStartMode.detached);
+      } catch (_) {}
     }
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('מעדכן ברקע...', textAlign: TextAlign.center),
+        content: const Text(
+          'העדכון רץ (כמה דקות). כשיסתיים, התוכנה תיפתח מחדש בגרסה החדשה.\n'
+          'אפשר להמשיך להשתמש או לסגור בינתיים.',
+          textAlign: TextAlign.center,
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('הבנתי')),
+        ],
+      ),
+    );
   }
 
   Future<void> _loadStats() async {
