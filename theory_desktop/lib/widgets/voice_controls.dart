@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../services/edge_tts_service.dart';
 import '../services/voice_service.dart';
 import '../theme/app_theme.dart';
 
@@ -36,71 +35,16 @@ class _VoiceControlsState extends State<VoiceControls> {
     super.dispose();
   }
 
-  String _ratePctLabel(int pct) => pct >= 0 ? '+$pct%' : '$pct%';
-
-  void _openSpeedDialog() {
-    int pct = EdgeTtsService.ratePct;
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setLocal) => AlertDialog(
-          title: const Text('מהירות הקראה', textAlign: TextAlign.center),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                _ratePctLabel(pct),
-                style:
-                    const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              Slider(
-                value: pct.toDouble(),
-                min: EdgeTtsService.minRatePct.toDouble(),
-                max: EdgeTtsService.maxRatePct.toDouble(),
-                divisions:
-                    (EdgeTtsService.maxRatePct - EdgeTtsService.minRatePct) ~/ 5,
-                label: _ratePctLabel(pct),
-                onChanged: (v) => setLocal(() => pct = (v / 5).round() * 5),
-              ),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [Text('🐢 איטי'), Text('מהיר 🐇')],
-              ),
-              const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: () async {
-                  await EdgeTtsService.setRate(pct);
-                  if (mounted) setState(() {});
-                  await VoiceService.speak('זוהי מהירות ההקראה שבחרת');
-                },
-                icon: const Icon(Icons.play_arrow_rounded),
-                label: const Text('השמע דוגמה'),
-              ),
-            ],
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () async {
-                await EdgeTtsService.setRate(pct);
-                if (mounted) setState(() {});
-                if (ctx.mounted) Navigator.pop(ctx);
-              },
-              child: const Text('שמור וסגור'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final isSpeaking = _state == VoiceState.speaking;
     final isListening = _state == VoiceState.listening;
     final isProcessing = _state == VoiceState.processing;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 12,
+      runSpacing: 10,
       children: [
         OutlinedButton.icon(
           onPressed: () {
@@ -113,13 +57,6 @@ class _VoiceControlsState extends State<VoiceControls> {
           icon: Icon(isSpeaking ? Icons.stop_rounded : Icons.volume_up_rounded),
           label: Text(isSpeaking ? 'עצור הקראה' : 'הקרא שאלה'),
         ),
-        const SizedBox(width: 12),
-        OutlinedButton.icon(
-          onPressed: _openSpeedDialog,
-          icon: const Icon(Icons.speed_rounded),
-          label: Text('מהירות ${_ratePctLabel(EdgeTtsService.ratePct)}'),
-        ),
-        const SizedBox(width: 12),
         if (isProcessing)
           const OutlinedButton(
             onPressed: null,

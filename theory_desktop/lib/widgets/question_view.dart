@@ -10,6 +10,8 @@ class QuestionView extends StatelessWidget {
   final int? selected;
   final bool reveal;
   final void Function(int) onSelect;
+  final void Function(int)? onLongPress;
+  final ScrollController? scrollController;
 
   const QuestionView({
     super.key,
@@ -17,12 +19,15 @@ class QuestionView extends StatelessWidget {
     required this.selected,
     required this.reveal,
     required this.onSelect,
+    this.onLongPress,
+    this.scrollController,
   });
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
+      controller: scrollController,
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -75,6 +80,7 @@ class QuestionView extends StatelessWidget {
               text: question.options[i],
               state: _stateFor(i),
               onTap: reveal ? null : () => onSelect(i),
+              onLongPress: onLongPress == null ? null : () => onLongPress!(i),
             ),
             const SizedBox(height: 10),
           ],
@@ -100,12 +106,14 @@ class _OptionButton extends StatelessWidget {
   final String text;
   final _OptionState state;
   final VoidCallback? onTap;
+  final VoidCallback? onLongPress;
 
   const _OptionButton({
     required this.index,
     required this.text,
     required this.state,
     required this.onTap,
+    this.onLongPress,
   });
 
   @override
@@ -136,6 +144,7 @@ class _OptionButton extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
+      onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

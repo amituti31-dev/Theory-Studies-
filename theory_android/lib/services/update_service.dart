@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 /// exists, exposes the release page URL so the user can download the update.
 class UpdateService {
   /// Bump this on every release; must match the release tag (e.g. tag v1.1.0).
-  static const currentVersion = '1.0.5';
+  static const currentVersion = '1.1.0';
 
   static const _repo = 'amituti31-dev/Theory-Studies';
   static const _latestApi =
