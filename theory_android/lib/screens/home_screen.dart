@@ -45,8 +45,14 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               final uri = Uri.parse(update.url);
-              if (await canLaunchUrl(uri)) {
+              // Don't gate on canLaunchUrl — it wrongly returns false on some
+              // platforms and the click would silently do nothing.
+              try {
                 await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } catch (_) {
+                try {
+                  await launchUrl(uri, mode: LaunchMode.platformDefault);
+                } catch (_) {}
               }
             },
             child: const Text('הורד עדכון'),
