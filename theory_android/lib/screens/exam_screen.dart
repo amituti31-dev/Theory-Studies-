@@ -379,7 +379,8 @@ class _ExamScreenState extends State<ExamScreen> {
             ),
           ],
         ),
-        body: Center(
+        body: SafeArea(
+          child: Center(
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: narrow ? 620 : 980),
             child: narrow
@@ -393,6 +394,7 @@ class _ExamScreenState extends State<ExamScreen> {
                     ],
                   ),
           ),
+        ),
         ),
       ),
     );

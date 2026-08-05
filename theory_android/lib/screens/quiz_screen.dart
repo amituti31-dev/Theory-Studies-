@@ -243,7 +243,8 @@ class _QuizScreenState extends State<QuizScreen> {
             ),
           ],
         ),
-        body: Center(
+        body: SafeArea(
+          child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 860),
             child: Column(
@@ -310,6 +311,7 @@ class _QuizScreenState extends State<QuizScreen> {
               ],
             ),
           ),
+        ),
         ),
       ),
     );
