@@ -491,21 +491,29 @@ class VoiceService {
     await _finishListening(onResult);
   }
 
+  /// Called when listening produced no usable answer, so the UI can prompt a
+  /// retry.
+  static void Function()? onListenFailed;
+
   static Future<void> _finishListening(void Function(int) onResult) async {
     _setState(VoiceState.processing);
     String? text;
     if (_useLocal) {
       text = await LocalSttService.stopAndTranscribe();
-      // Local engine failed — try Groq with nothing to lose? The recording
-      // was consumed locally, so just report idle and let the user retry.
+      text ??= await GroqSttService.transcribeFile(
+          LocalSttService.lastRecordingPath);
     } else {
       text = await GroqSttService.stopAndTranscribe();
     }
     _setState(VoiceState.idle);
     if (text != null) {
       final index = _parseAnswer(text);
-      if (index != null) onResult(index);
+      if (index != null) {
+        onResult(index);
+        return;
+      }
     }
+    onListenFailed?.call();
   }
 
   static Future<void> stopListening() async {

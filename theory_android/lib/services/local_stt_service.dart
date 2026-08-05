@@ -72,12 +72,16 @@ class LocalSttService {
     _serverReady = false;
   }
 
+  /// The last recording's file path — reused for a Groq fallback if the local
+  /// engine fails to transcribe.
+  static String get lastRecordingPath =>
+      '${Directory.systemTemp.path}\\local_stt_in.wav';
+
   static Future<void> startRecording() async {
     if (!await _recorder.hasPermission()) return;
-    final path = '${Directory.systemTemp.path}\\local_stt_in.wav';
     await _recorder.start(
       const RecordConfig(encoder: AudioEncoder.wav, sampleRate: 16000, numChannels: 1),
-      path: path,
+      path: lastRecordingPath,
     );
     _recording = true;
   }

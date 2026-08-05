@@ -27,11 +27,23 @@ class _VoiceControlsState extends State<VoiceControls> {
     VoiceService.onStateChanged = (s) {
       if (mounted) setState(() => _state = s);
     };
+    VoiceService.onListenFailed = () {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'לא הצלחתי להבין — אמור בבירור "אחת" / "שתיים" / "שלוש" / "ארבע" ונסה שוב',
+            textDirection: TextDirection.rtl,
+          ),
+        ),
+      );
+    };
   }
 
   @override
   void dispose() {
     VoiceService.onStateChanged = null;
+    VoiceService.onListenFailed = null;
     super.dispose();
   }
 

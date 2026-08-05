@@ -50,6 +50,25 @@ class GroqSttService {
     return null;
   }
 
+  /// Transcribes an already-recorded audio file (used as a fallback when the
+  /// local whisper engine fails).
+  static Future<String?> transcribeFile(String path) async {
+    final file = File(path);
+    if (!file.existsSync() || file.lengthSync() < 1000) return null;
+    try {
+      final req = http.MultipartRequest('POST', Uri.parse(_url))
+        ..headers['Authorization'] = 'Bearer $_apiKey'
+        ..fields['model'] = _model
+        ..fields['language'] = 'he'
+        ..fields['response_format'] = 'text'
+        ..files.add(await http.MultipartFile.fromPath('file', path));
+      final streamed = await req.send().timeout(const Duration(seconds: 15));
+      final body = await streamed.stream.bytesToString();
+      if (streamed.statusCode == 200) return body.trim();
+    } catch (_) {}
+    return null;
+  }
+
   static Future<void> cancel() async {
     await _recorder.stop();
     _recording = false;
