@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../providers/app_provider.dart';
@@ -42,24 +44,72 @@ class _HomeScreenState extends State<HomeScreen> {
             child: const Text('אחר כך'),
           ),
           FilledButton(
-            onPressed: () async {
+            onPressed: () {
               Navigator.pop(ctx);
-              final uri = Uri.parse(update.url);
-              // Don't gate on canLaunchUrl — it wrongly returns false on some
-              // platforms and the click would silently do nothing.
-              try {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
-              } catch (_) {
-                try {
-                  await launchUrl(uri, mode: LaunchMode.platformDefault);
-                } catch (_) {}
-              }
+              _downloadAndInstall(update.assetUrl, update.pageUrl);
             },
-            child: const Text('הורד עדכון'),
+            child: const Text('הורד והתקן'),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      try {
+        await launchUrl(uri, mode: LaunchMode.platformDefault);
+      } catch (_) {}
+    }
+  }
+
+  /// Downloads the installer and runs it. Falls back to the release page.
+  Future<void> _downloadAndInstall(String? assetUrl, String pageUrl) async {
+    if (assetUrl == null) {
+      await _openUrl(pageUrl);
+      return;
+    }
+    final progress = ValueNotifier<double>(0);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('מוריד עדכון...', textAlign: TextAlign.center),
+        content: ValueListenableBuilder<double>(
+          valueListenable: progress,
+          builder: (_, p, _) => Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              LinearProgressIndicator(value: p > 0 ? p : null),
+              const SizedBox(height: 12),
+              Text(p > 0 ? '${(p * 100).toInt()}%' : 'מתחיל...'),
+            ],
+          ),
+        ),
+      ),
+    );
+    try {
+      final file = File('${Directory.systemTemp.path}\\TheoryStudiesSetup.exe');
+      final resp = await http.Client().send(http.Request('GET', Uri.parse(assetUrl)));
+      final total = resp.contentLength ?? 0;
+      final sink = file.openWrite();
+      int received = 0;
+      await for (final chunk in resp.stream) {
+        sink.add(chunk);
+        received += chunk.length;
+        if (total > 0) progress.value = received / total;
+      }
+      await sink.close();
+      if (mounted) Navigator.of(context).pop(); // close progress dialog
+      // Launch the installer; it will guide the user through the update.
+      await Process.start(file.path, [], mode: ProcessStartMode.detached);
+    } catch (_) {
+      if (mounted) Navigator.of(context).pop();
+      await _openUrl(pageUrl);
+    }
   }
 
   Future<void> _loadStats() async {

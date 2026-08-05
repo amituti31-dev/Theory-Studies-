@@ -1,11 +1,12 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'package:http/http.dart' as http;
 
 /// Checks the GitHub Releases of the project for a newer version and, when one
 /// exists, exposes the release page URL so the user can download the update.
 class UpdateService {
   /// Bump this on every release; must match the release tag (e.g. tag v1.1.0).
-  static const currentVersion = '1.1.3';
+  static const currentVersion = '1.1.4';
 
   static const _repo = 'amituti31-dev/Theory-Studies';
   static const _latestApi =
@@ -14,8 +15,12 @@ class UpdateService {
   /// The releases page, used as a safe fallback download link.
   static const releasesPage = 'https://github.com/$_repo/releases';
 
-  /// Returns (version, url) when a newer release exists, otherwise null.
-  static Future<({String version, String url})?> checkForUpdate() async {
+  /// Returns update info when a newer release exists, otherwise null.
+  /// [assetUrl] is the direct download link for this platform's installer/APK
+  /// (null on platforms without a prebuilt binary, e.g. Linux); [pageUrl] is
+  /// the release web page (used as a fallback).
+  static Future<({String version, String pageUrl, String? assetUrl})?>
+      checkForUpdate() async {
     try {
       final r = await http.get(
         Uri.parse(_latestApi),
@@ -29,8 +34,25 @@ class UpdateService {
       final remote = tag.replaceFirst(RegExp('^v'), '');
       if (!_isNewer(remote, currentVersion)) return null;
 
-      final url = (data['html_url'] as String?) ?? releasesPage;
-      return (version: remote, url: url);
+      final pageUrl = (data['html_url'] as String?) ?? releasesPage;
+
+      // Pick the direct download URL for this platform's asset.
+      final wantExt = Platform.isWindows
+          ? '.exe'
+          : Platform.isAndroid
+              ? '.apk'
+              : null;
+      String? assetUrl;
+      if (wantExt != null) {
+        for (final a in (data['assets'] as List? ?? const [])) {
+          final name = ((a as Map)['name'] as String? ?? '').toLowerCase();
+          if (name.endsWith(wantExt)) {
+            assetUrl = a['browser_download_url'] as String?;
+            break;
+          }
+        }
+      }
+      return (version: remote, pageUrl: pageUrl, assetUrl: assetUrl);
     } catch (_) {
       return null;
     }
